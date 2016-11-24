@@ -314,7 +314,65 @@ clear boundaries distance i indexes k peak peakIndexes temp threshold ...
 
 toc
 
+%% Length and Width
+% Compute the length and width of the hand for another key descriptor
+disp('Computing Length and Width');
+tic
 
+imageWidth  = zeros(1, numFiles);
+imageLength = zeros(1, numFiles);
+
+for z = 1:numFiles
+    
+    % Find the contour of the image.
+    % This may need to be modified to a true countour instead of thresholding
+    % with the im2bw() function.
+    binaryImage = im2bw( imageStack(:,:,z) );
+    % binaryImage = contour(binaryImage);
+
+    % Find the boundary locations of the countoured image
+    boundaries = bwboundaries(binaryImage, 'noholes');
+    x = boundaries{1}(:, 2);
+    y = boundaries{1}(:, 1);
+    
+    % Compute the hull of the contour
+    indexes = convhull(x, y);
+    
+    imageWidth(z) = (max(x(indexes)) - min(x(indexes)) );
+    imageLength(z) = (max(y(indexes)) - min(y(indexes)) );
+    
+    midX = (max(x(indexes)) + min(x(indexes)) )/2;
+    midY = (max(y(indexes)) + min(y(indexes)) )/2;
+    
+    % This code can be used for construction the hull of the image. Think of it
+    % as the boundaries of the image only using the maximum difference
+    % locations. You can also plot the image if it helps make sense
+    figure, imshow(binaryImage, []);
+    hold on; 
+    plot(x(indexes), y(indexes), 'm-', 'LineWidth', 2);
+    for k = 1 : length(imageWidth)
+        line([max(x(indexes)), min(x(indexes))], [midY, midY ], 'Color', 'r', 'LineWidth', 2);
+        line([midX, midX ], [max(y(indexes)), min(y(indexes))], 'Color', 'r', 'LineWidth', 2);
+    end
+    hold off;
+    
+end
+
+clear x y z indexes boundaries binaryImage midX midY
+
+toc
+
+%% K Means Clustering Algorithm
+% With all of the key descriptors calculated, the keys can be used to build
+% a function describing the discrepencies between the signs.
+
+% Plot the Orientation vs the Eccentricity
+figure;
+plot( imageOrientation, imageEccentricity,'k*','MarkerSize',5);
+
+% Plot the 
+figure;
+plot( imageWidth, imageLength,'k*','MarkerSize',5);
 
 
 
